@@ -10,25 +10,27 @@ import (
 )
 
 const (
-	// ARRAY array.
+	// ARRAY represent a array value.
 	ARRAY = "array"
-	// OBJECT object.
+	// OBJECT represent a object value.
 	OBJECT = "object"
-	// PRIMITIVE primitive.
+	// PRIMITIVE represent a primitive value.
 	PRIMITIVE = "primitive"
-	// BOOLEAN boolean.
+	// BOOLEAN represent a boolean value.
 	BOOLEAN = "boolean"
-	// INTEGER integer.
+	// INTEGER represent a integer value.
 	INTEGER = "integer"
-	// NUMBER number.
+	// NUMBER represent a number value.
 	NUMBER = "number"
-	// STRING string.
+	// STRING represent a string value.
 	STRING = "string"
-	// FUNC func.
+	// FUNC represent a function value.
 	FUNC = "func"
-	// ANY any
+	// INTERFACE represent a interface value.
+	INTERFACE = "interface{}"
+	// ANY represent a any value.
 	ANY = "any"
-	// NIL nil
+	// NIL represent a empty value.
 	NIL = "nil"
 )
 
@@ -104,7 +106,8 @@ func IsGolangPrimitiveType(typeName string) bool {
 		"float32",
 		"float64",
 		"bool",
-		"string":
+		"string",
+		"any":
 		return true
 	}
 
@@ -126,15 +129,13 @@ func TypeDocName(pkgName string, spec *ast.TypeSpec) string {
 	if spec != nil {
 		if spec.Comment != nil {
 			for _, comment := range spec.Comment.List {
-				text := strings.TrimSpace(comment.Text)
-				text = strings.TrimLeft(text, "//")
-				text = strings.TrimSpace(text)
-				texts := strings.Split(text, " ")
+				texts := strings.Split(strings.TrimSpace(strings.TrimLeft(comment.Text, "/")), " ")
 				if len(texts) > 1 && strings.ToLower(texts[0]) == "@name" {
 					return texts[1]
 				}
 			}
 		}
+
 		if spec.Name != nil {
 			return fullTypeName(strings.Split(pkgName, ".")[0], spec.Name.Name)
 		}
@@ -170,6 +171,7 @@ func BuildCustomSchema(types []string) (*spec.Schema, error) {
 		if len(types) == 1 {
 			return nil, errors.New("need array item type after array")
 		}
+
 		schema, err := BuildCustomSchema(types[1:])
 		if err != nil {
 			return nil, err
@@ -180,6 +182,7 @@ func BuildCustomSchema(types []string) (*spec.Schema, error) {
 		if len(types) == 1 {
 			return PrimitiveSchema(types[0]), nil
 		}
+
 		schema, err := BuildCustomSchema(types[1:])
 		if err != nil {
 			return nil, err

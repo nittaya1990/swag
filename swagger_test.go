@@ -146,6 +146,14 @@ var doc = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKey": {
+            "description: "some",
+            "type": "apiKey",
+            "name": "X-API-KEY",
+            "in": "header"
+        }
     }
 }`
 
@@ -162,9 +170,33 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, doc, d)
 }
 
+func TestRegisterByName(t *testing.T) {
+	setup()
+	Register("another_name", &s{})
+	d, _ := ReadDoc("another_name")
+	assert.Equal(t, doc, d)
+}
+
+func TestRegisterMultiple(t *testing.T) {
+	setup()
+	Register(Name, &s{})
+	Register("another_name", &s{})
+	d1, _ := ReadDoc(Name)
+	d2, _ := ReadDoc("another_name")
+	assert.Equal(t, doc, d1)
+	assert.Equal(t, doc, d2)
+}
+
 func TestReadDocBeforeRegistered(t *testing.T) {
 	setup()
 	_, err := ReadDoc()
+	assert.Error(t, err)
+}
+
+func TestReadDocWithInvalidName(t *testing.T) {
+	setup()
+	Register(Name, &s{})
+	_, err := ReadDoc("invalid")
 	assert.Error(t, err)
 }
 
@@ -185,5 +217,5 @@ func TestCalledTwicelRegister(t *testing.T) {
 }
 
 func setup() {
-	swag = nil
+	swags = nil
 }
